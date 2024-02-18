@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <script>
+    let globalId = 1;
+    let todoState = [];
+    let oldTodoState = [];
+
+    function addTodoToDom(todo) {
+      const parent = document.getElementById("todos");
+      const child = document.createElement("div");
+      child.id = `todo-${todo.id}`;
+      
+      const titleChild = document.createElement("div");
+      const descChild = document.createElement("div");
+      titleChild.innerHTML = todo.title;
+      descChild.innerHTML = todo.description;
+      child.append(titleChild);
+      child.append(descChild);
+      parent.append(child);
+    }
+
+    function removeTodoFromDom(todo) {
+      const element = document.getElementById(`todo-${todo.id}`);
+      element.remove();
+    }
+
+    function updateTodoInDom(oldTodo, newTodo) {
+      const element = document.getElementById(`todo-${oldTodo.id}`);
+      element[0].innerHTML = newTodo.title;
+      element[1].innerHTML = newTodo.description;
+    }
+
+    function updateState(newTodos) {
+      const added = [];
+      const deleted = [];
+      const updated = [];
+
+      const newIds = [];
+      const oldIds = [];
+
+      for(let i=0;i<newTodos.length;i++){
+        newIds.push(newTodos[i]["id"]);
+      }
+
+      for(let i=0;i<oldTodoState.length;i++){
+        oldIds.push(oldTodoState[i]["id"]);
+      }
+
+      function filterNew(id){
+        for(let i=0;i<newTodos.length;i++){
+          if(newTodos[i]["id"] == id){
+            return true;
+          }
+        }
+      }
+
+      function filterOld(id){
+        for(let i=0;i<oldTodoState.length;i++){
+          if(oldTodoState[i]["id"] == id){
+            return true;
+          }
+        }
+      }
+
+      const addedIds = newIds.filter(x => !oldIds.includes(x));
+      const deletedIds = oldIds.filter(x => !newIds.includes(x));
+      const updatedIds = newIds.filter(x => oldIds.includes(x));
+
+      for(let j=0;j<addedIds.length;j++){
+        let id = addedIds[j];
+        let obj = newTodos.filter(todo => filterNew(todo.id));
+        added.push(...obj);
+      }
+
+      for(let j=0;j<deletedIds.length;j++){
+        let id = deletedIds[j];
+        let obj = oldTodoState.filter(todo => filterOld(todo.id));
+        deleted.push(...obj);
+      }
+
+      for(let j=0;j<updatedIds.length;j++){
+        let id = updatedIds[j];
+        let obj = oldTodoState.filter(todo => filterOld(todo.id));
+        let obj2 = newTodos.filter(todo => filterNew(todo.id));
+        updated.push(...obj);
+        updated.push(...obj2);
+      }
+
+      for(let i=0;i<added.length;i++){
+        addTodoToDom(added[i]);
+      }
+
+      for(let i=0;i<deleted.length;i++){
+        removeTodoFromDom(deleted[i]);
+      }
+
+      for(let i=0;i<updated.length;i+=2){
+        updateTodoInDom(updated[i],updated[i+1]);
+      }
+
+      oldTodoState = newTodos;
+    }
+
+    function addTodo() {
+      const title = document.getElementById("title").value;
+      const description = document.getElementById("description").value;
+      todoState.push({
+        title: title,
+        description: description,
+        id: globalId++,
+      })
+      updateState(todoState);
+    }
+  </script>
+</head>
+
+<body>
+  <input type="text" id="title" placeholder="Todo title"></input> <br /><br />
+  <input type="text" id="description" placeholder="Todo description"></input> <br /><br />
+  <button onclick="addTodo()">Add todo</button>
+  <br /> <br />
+
+  <div id="todos">
+
+  </div>
+</body>
+
+</html>
